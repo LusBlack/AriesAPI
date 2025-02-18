@@ -38,36 +38,44 @@ class LikeNotification extends Notification
     }
 
     public function toDatabase() {
+        \Log::info('Notification Triggered!');
+
         $post_id = $this->post?->id;
         $comment_id = $this->comment?->id;
         $course_id = $this->course?->id;
 
         if($post_id) {
             return [
-                'message' => "{$this->user->name} liked your post.",
+                'message' => "{$this->user->username} liked your post.",
                 'avatar' => $this->user->avatar,
                 'post_id' => $post_id,
                 'liked_by' => $this->user->id,
+                'liked_by_username' => $this->user->username,
             ];
         }
         if($comment_id) {
             return [
-                'message' => "{$this->user->name} liked your comment.",
+                'message' => "{$this->user->username} liked your comment.",
                 'avatar' => $this->user->avatar,
                 'comment_id' => $comment_id,
                 'liked_by' => $this->user->id,
+                'liked_by_username' => $this->user->username,
             ];
         }
         if($course_id) {
             return [
-                'message' => "{$this->user->name} liked your course.",
+                'message' => "{$this->user->username} liked your course.",
                 'avatar' => $this->user->avatar,
                 'course_id' => $course_id,
                 'liked_by' => $this->user->id,
+                'liked_by_username' => $this->user->username,
             ];
-        }
 
-    }
+           // \Log::info('Notification Data:', $data);
+
+            //return $data;
+        }
+     }
 
     /**
      * Get the mail representation of the notification.

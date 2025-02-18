@@ -21,7 +21,7 @@ class LikeController {
         $commentId = $comment?->id;
         $courseId = $course?->id;
 
-        // Check if the like already exists
+        //Check if the like already exists
         $statCheck = Like::where('user_id', '=', $user->id)
             ->where(function ($query) use ($postId, $commentId, $courseId) {
                 $query->when($postId, fn($q) => $q->where('post_id', '=', $postId))
@@ -30,7 +30,7 @@ class LikeController {
             })->first();
 
         if ($statCheck) {
-            // Remove the like if it already exists
+            //Remove like if it already exists
            $delete = $statCheck->delete();
             if ($delete) {
                 return response()->json(['message' => 'like removed']);
@@ -44,21 +44,19 @@ class LikeController {
         $newLike->comment_id = $commentId ?: null;
         $newLike->course_id = $courseId ?: null;
 
-        // if ($postId !== null) {
-        //     $newLike->post_id = $postId;
-        // }
-
-        // if ($commentId !== null) {
-        //     $newLike->comment_id = $commentId;
-        // }
-
-        // if ($courseId !== null) {
-        //     $newLike->course_id = $courseId;
-        // }
-
         $save = $newLike->save();
 
         if ($save) {
+            if ($post) {
+                $post->load('user');
+            }
+            if ($comment) {
+                $comment->load('user');
+            }
+            if ($course) {
+                $course->load('user');
+            }
+
             $notifiable = $post?->user ?? $comment?->user ?? $course?->user;
 
             if ($notifiable) {
@@ -68,6 +66,30 @@ class LikeController {
         }
 
         return response()->json(['message' => 'like creation failed'], 500);
+    }
+
+    public function post_like_count ($postId) {
+        $count = Like::where('post_id', $postId)->count();
+        return response()->json([
+            'post_id' => $postId,
+            'like_count' => $count
+        ]);
+    }
+
+    public function comment_like_count ($commentId) {
+        $count = Like::where('comment_id', $commentId)->count();
+        return response()->json([
+            'comment_id' => $commentId,
+            'like_count' => $count
+        ]);
+    }
+
+    public function course_like_count ($courseId) {
+        $count = Like::where('course_id', $courseId)->count();
+        return response()->json([
+            'course_id' => $courseId,
+            'like_count' => $count
+        ]);
     }
 
 }

@@ -7,22 +7,20 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class followedNotification extends Notification
+class HireRequestNotification extends Notification
 {
     use Queueable;
-    protected $follower;
-    protected $followed;
 
-
+    protected $client;
+    protected $message;
 
     /**
      * Create a new notification instance.
      */
-    public function __construct($follower, $followed)
+    public function __construct($client, $message = null)
     {
-
-        $this->follower = $follower;
-        $this->followed = $followed;
+        $this->client = $client;
+        $this->message = $message;
     }
 
     /**
@@ -32,17 +30,7 @@ class followedNotification extends Notification
      */
     public function via(object $notifiable): array
     {
-        return ['database'];
-    }
-
-    public function toDatabase($notifiable) {
-        return [
-            'message' => "{$this->follower->name} followed you",
-            'avatar' => $this->follower->avatar ?? null,
-            'follower_id' => $this->follower->id,
-            'notifiable_id' => $notifiable->id,
-            'notifiable_type' => get_class($notifiable),
-        ];
+        return ['mail', 'database'];
     }
 
     /**
@@ -51,9 +39,12 @@ class followedNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-                    ->line('The introduction to the notification.')
-                    ->action('Notification Action', url('/'))
-                    ->line('Thank you for using our application!');
+            ->subject('New Hire Request')
+            ->greeting('Hello ' . $notifiable->name . ',')
+            ->line($this->client->name . ' has sent you a hire request.')
+            ->line($this->message ? 'Message: "' . $this->message . '"' : '')
+            ->action('View Request', url('/hire-requests'))
+            ->line('Thank you for using our platform!');
     }
 
     /**
@@ -64,7 +55,9 @@ class followedNotification extends Notification
     public function toArray(object $notifiable): array
     {
         return [
-            //
+            'message' => $this->client->name . ' has sent you a hire request.',
+            'client_id' => $this->client->id,
+            'message_content' => $this->message,
         ];
     }
 }

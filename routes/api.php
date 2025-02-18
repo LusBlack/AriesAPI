@@ -18,8 +18,10 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\EducatorsController;
 use App\Http\Controllers\LiveClassController;
 use App\Http\Controllers\HireRequestController;
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\PaystackController;
 use App\Http\Controllers\SubscriptionController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -77,9 +79,20 @@ Route::middleware(['auth:sanctum'])->group(function() {
 
     // Comment route
     Route::post('/post/{post}/comment', [CommentController::class, 'postComment'])->name('post.comment');
+    Route::get('/posts/{post}/comments', [CommentController::class, 'displayComments']);
 
     // Like routes
     Route::post('/post/{post}/like', [LikeController::class, 'createLike'])->name('like.post');
+
+    Route::get('/post_likes/{postId}', [LikeController::class, 'post_like_count']);
+    Route::get('/comment_likes/{commentId}', [LikeController::class, 'comment_like_count']);
+    Route::get('/course_likes/{courseId', [LikeController::class, 'course_like_count']);
+
+    // Like a comment
+    Route::post('/comment/{comment}/like', [LikeController::class, 'createLike'])->middleware('auth:api')->name('like.comment');
+
+    // Like a course
+    Route::post('/course/{course}/like', [LikeController::class, 'createLike'])->middleware('auth:api')->name('like.course');
     Route::post('/comment/{comment}/like', [LikeController::class, 'createLike'])
         ->middleware('auth:api')
         ->name('like.comment');
@@ -93,7 +106,11 @@ Route::middleware(['auth:sanctum'])->group(function() {
     Route::post('/hire-request', [HireRequestController::class, 'sendRequest']);
     Route::patch('/hire-request/{id}/accept', [HireRequestController::class, 'acceptRequest']);
     Route::patch('/hire-request/{id}/decline', [HireRequestController::class, 'declineRequest']);
-    Route::get('/hire-requests', [HireRequestController::class, 'getRequests']);
+    Route::get('/hire-requests', [HireRequestController::class, 'listRequests']);
+    Route::delete('/hire-requests/{id}', [HireRequestController::class, 'cancelRequest']);
+
+    Route::get('/notifications', [NotificationController::class, 'getNotifications']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markAsRead']);
 
     // Setup status
     Route::get('/setup_status', [SetupController::class, 'checkSetupStatus']);

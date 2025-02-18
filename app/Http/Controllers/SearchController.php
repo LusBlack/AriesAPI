@@ -14,18 +14,15 @@ class SearchController extends Controller
             'query' => 'required|string|max:255',
         ]);
 
-
         $query = $request->input('query');
 
+        $posts = Post::search($query)->get()->load('user');
+        $users = User::search($query)->get();
+        $courses = Course::search($query)->get()->load('user');
 
-        // Search based on type
-        $results = [
-                'posts' => Post::search($query)->get(),
-                'users' => User::search($query)->get(),
-                'courses' => Course::search($query)->get(),
-        ];
+        $results = $posts->merge($users)->merge($courses);
 
-        if (empty($results['posts']) && empty($results['users']) && empty($results['courses'])) {
+        if ($results->isEmpty()) {
             return response()->json([
                 'success' => true,
                 'message' => 'No results found for your query.',
@@ -33,12 +30,10 @@ class SearchController extends Controller
             ]);
         }
 
-
-        //Return the search results
         return response()->json([
             'success' => true,
             'results' => $results,
         ]);
-
     }
+
 }
